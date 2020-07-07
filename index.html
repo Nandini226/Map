@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!-- www.techstrikers.com -->
+	<title>Final</title>
+
+	<script async defer
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCusWBCUo6GlSpbPkNd8vpfgIgdc1Sa8KE&callbac&callback=initMap&libraries=geometry">
+		</script>
+</head>
+
+<style>
+	html,
+	body {
+		height: 100vh;
+		margin: 0;
+		padding: 0;
+	}
+
+	#map {
+		height: 99%;
+		width: 99%;
+	}
+</style>
+
+<body>
+	<h1 align="center">Google Maps</h1>
+	<h3 align="center">Click on map to give different delivery locations </h3>
+	<div id="map"></div>
+</body>
+
+<script>
+	let map;
+	let markers = [
+		['Warehouse', 22.7216, 75.8600],
+		['Location1', 22.7265, 75.8590],
+		['Location2', 22.7174, 75.8521],
+		['Location3', 22.7375, 75.8567],
+		['Location4', 22.7164, 75.8260],
+		['Location5', 22.7122, 75.8556],
+	];
+
+	function initMap() {
+		let lat_lng = { lat: 22.7196, lng: 75.8577 }; // Center of map
+		map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 14,
+			center: lat_lng,
+			mapTypeId: google.maps.MapTypeId.TERRAIN // (terrain view)
+		});
+		let markerA = new google.maps.Marker({
+			position: { lat: 22.7216, lng: 75.8600 },  //warehouse
+			map: map,
+			label: { color: '#FFFFFF', fontWeight: 'bold', fontSize: '20px', text: 'Warehouse' }
+		});
+		//marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+		//vehical location
+		let markerB = new google.maps.Marker({
+			position: { lat: 22.7116, lng: 75.8675 }, // vehicle
+			map: map,
+			label: { color: '#FFFFFF', fontWeight: 'bold', fontSize: '20px', text: 'Vehicle Location' }
+		});
+		for (i = 1; i <= markers.length - 1; i++) {
+			marker = new google.maps.Marker({
+				position: new google.maps.LatLng(markers[i][1], markers[i][2]),
+				map: map,
+				label: { color: '#FFFFFF', fontWeight: 'bold', fontSize: '20px', text: "Location " + i }
+			});
+			marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+		}
+	}
+
+	function degreesToRadians(degrees) {
+		return degrees * Math.PI / 180;
+	}
+
+	function getDistanceBetweenPoints(point1, point2) {
+		let lat1 = point1[1], lng1 = point1[2];
+		let lat2 = point2[1], lng2 = point2[2];
+		// The radius of the planet earth in meters
+		let R = 6378137;
+		let dLat = degreesToRadians(lat2 - lat1);
+		let dLong = degreesToRadians(lng2 - lng1);
+		let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos(degreesToRadians(lat1)) *
+			Math.cos(degreesToRadians(lat1)) *
+			Math.sin(dLong / 2) *
+			Math.sin(dLong / 2);
+		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		let distance = R * c;
+		return distance;
+	}
+
+	//combined array
+	let distanceMatrix = [];
+	for (let i = 0; i < markers.length; i++) {
+		let distances = [];
+		for (let j = 0; j < markers.length; j++)
+			distances.push(getDistanceBetweenPoints(markers[i], markers[j]));
+		distanceMatrix.push(distances);
+	}
+	//distance between vehical location and warehouse
+	let distanceFromWarehouseToVehicalLocation = getDistanceBetweenPoints(markers[0], ['Vehicle', 22.7116, 75.8675]);
+	//console.log("distanceMatrix:");
+	//console.log(distanceMatrix);
+
+
+	// tsp imp code
+	let path = [markers[0]],totalDistance=0; // shortest path, starting from warehouse
+	let unvisited = [markers[1], markers[2], markers[3], markers[4], markers[5]]; // list of locations unvisited
+	function tsp() {
+		for (let i = 1; i < markers.length; i++) {
+			let current = path[path.length - 1]; // get last point that we visited
+			let distances = []; // empty list of distances
+			for (let j = 0; j < unvisited.length; j++)
+				distances.push(getDistanceBetweenPoints(current, unvisited[j]));
+			let minDistance = Math.min(...distances); // find min dist
+            totalDistance=totalDistance+distances;
+			let closestPoint = unvisited[distances.indexOf(minDistance)]; // get the location array for that point
+			unvisited.splice(distances.indexOf(minDistance), 1); // mark it visited
+			path.push(closestPoint); // add it to path
+		}
+	}
+	tsp();
+	alert("final path\n"+path);
+    alert("totalDistance"+totalDistance);
+   
+	// //tsp imp code
+	// let array = [];
+	// array.length = 5;
+
+	// function tsp(index = 0) {
+	//   let visited = [], n = markers.length, sum = 0;
+	//   let sum1 = [];
+	//   for (i = 1; i < n; i++) {
+	//     if (visited[i] == 0) {
+	//       array.push(i);
+	//       let sum = sum + combinedArray[index][i];
+	//       sum1.push(sum);
+	//     }
+	//     if (index >= array.length)
+	//       array.pop();
+	//     tsp(index = index + 1);
+	//     alert(array);
+	//   }
+	// }
+
+	// tsp();
+</script>
+
+</html>
